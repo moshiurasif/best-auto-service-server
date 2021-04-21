@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const ObjectId = require("mongodb").ObjectId;
-const fsExtra = require("fs-extra");
 const MongoClient = require("mongodb").MongoClient;
 require("dotenv").config();
 // console.log(process.env.DB_USER);
@@ -16,9 +15,9 @@ app.use(fileUpload());
 
 
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello World!");
+// });
 
 
 
