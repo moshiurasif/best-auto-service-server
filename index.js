@@ -13,27 +13,25 @@ app.use(express.json());
 app.use(express.static("customerImage"));
 app.use(fileUpload());
 
-
-
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
-
-
-
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 client.connect((err) => {
-  const orderInfoCollection = client.db("gerezdb").collection("orderInformation");
+  const orderInfoCollection = client
+    .db("gerezdb")
+    .collection("orderInformation");
   const reviewInformationCollection = client
     .db("gerezdb")
     .collection("reviewInformation");
-    const servicesDataCollection = client
-      .db("gerezdb")
-      .collection("servicesData");
+  const servicesDataCollection = client
+    .db("gerezdb")
+    .collection("servicesData");
+  const adminCollection = client.db("gerezdb").collection("adminCollection");
   console.log("mongo connected");
   // order
   app.post("/addOrder", (req, res) => {
@@ -44,12 +42,38 @@ client.connect((err) => {
   });
 
   app.get("/orders", (req, res) => {
-    orderInfoCollection.find()
-    .toArray((err, items) => {
+    orderInfoCollection.find().toArray((err, items) => {
       console.log(items);
       res.send(items);
     });
-  })
+  });
+
+  // get booking data from database by get post request
+  app.post("/customarBookingsList", (req, res) => {
+    const email = req.body.email;
+    orderInfoCollection.find({ email: email }).toArray((err, bookings) => {
+      res.send(bookings);
+    });
+  });
+
+  app.post("/checkAdmin", (req, res) => {
+    const email = req.body.email;
+    console.log(req.body.email);
+   adminCollection.find({ email: email }).toArray((err, result) => {
+     res.send(result.length > 0);
+   });
+  });
+
+// delete service
+app.delete("/deleteService/:id", (req, res) => {
+  const id = req.params.id;
+  servicesDataCollection.deleteOne({ _id: ObjectId(id) }).then((result) => {
+    if (result.deletedCount > 0) {
+      res.send(!!result.deletedCount);
+    }
+  });
+});
+
 
   // add review
   app.post("/addReview", (req, res) => {
@@ -108,11 +132,12 @@ client.connect((err) => {
   });
   app.post("/singleService", (req, res) => {
     const id = req.body.id;
-    servicesDataCollection.find({ _id: ObjectId(id)}).toArray((err, documents) => {
-      res.send(documents);
-    });
+    servicesDataCollection
+      .find({ _id: ObjectId(id) })
+      .toArray((err, documents) => {
+        res.send(documents);
+      });
   });
 });
-
 
 app.listen(port);
